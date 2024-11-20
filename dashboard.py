@@ -134,7 +134,7 @@ def main():
         st.markdown("---")
 
         # Cria colunas para exibir as tabelas lado a lado
-        col1, col2 = st.columns([1, 2.7])
+        col1, col2 = st.columns([1, 2.5])
 
         with col1:
             # Exibe a tabela com os valores previstos acumulados
