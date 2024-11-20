@@ -39,6 +39,7 @@ class SharePoint:
 file_name = "Blutrafos_GC Eventos.xlsx"
 
 # Função para obter os dados do SharePoint e exibir no Streamlit
+@st.cache_data
 def load_data():
     sharepoint = SharePoint()
     try:
@@ -54,11 +55,12 @@ def load_data():
 
 # Função principal para exibir o gráfico no Streamlit
 def main():
-    st.set_page_config(initial_sidebar_state="collapsed",layout="wide")
+    st.set_page_config(initial_sidebar_state="collapsed", layout="wide")
+    
     # Cria colunas para posicionar a imagem no canto esquerdo
     col1, col2 = st.columns([4, 0.1])
     with col1:
-         st.title("Análise Contas a Receber - Blutrafos") 
+        st.title("Análise Contas a Receber - Blutrafos")
     with col2:
         st.image("B (1).png", width=75)
 
@@ -69,12 +71,16 @@ def main():
         status_evento_options = [status for status in df['Status Evento'].unique().tolist() if status != "Concluído"]
         status_evento_selecionados = st.sidebar.multiselect("Selecione os Status Evento", status_evento_options, default=status_evento_options)
         
-        # Aplica o filtro se uma ou mais opções forem selecionadas
+        camporef_options = [camporef for camporef in df['Campo Ref'].unique().tolist()]
+        # Remove "Faturamento" e "Entrega" da lista padrão
+        default_camporef_options = [camporef for camporef in camporef_options if camporef not in ["Faturamento", "Entrega"]]
+        camporef_selecionados = st.sidebar.multiselect("Selecione os Campos de referência para eventos:", camporef_options, default=default_camporef_options)
+
+        # Aplica os filtros de forma eficiente
         if status_evento_selecionados:
             df = df[df['Status Evento'].isin(status_evento_selecionados)]
-
-        # Filtra os dados para que "Campo Ref" seja diferente de "Faturamento" e "Entrega"
-        df = df[~df['Campo Ref'].isin(['Faturamento', 'Entrega'])]
+        if camporef_selecionados:
+            df = df[df['Campo Ref'].isin(camporef_selecionados)]
 
         # Filtra os dados para que "Dt Real Pagto" seja None
         df = df[df['Dt Real Pagto'].isna()]
@@ -97,6 +103,10 @@ def main():
             'Previsto Acumulado': previsto_acumulado.values
         })
 
+        # Formata os valores para exibição no gráfico em milhões
+        df_plot['Previsto Acumulado MI'] = df_plot['Previsto Acumulado'] / 1_000_000
+        df_plot['Previsto Acumulado MI'] = df_plot['Previsto Acumulado MI'].map('{:,.1f} MI'.format)
+
         st.markdown("---")
         # Calcula o total de Valor Prev
         total_valor_prev = df['Valor Prev'].sum()
@@ -109,7 +119,7 @@ def main():
         fig = px.line(df_plot, x='Mes', y='Previsto Acumulado', labels={
             'value': 'Valores Acumulados',
             'Mes': 'Mês/Ano'
-        }, title='Previsto Acumulado', text=df_plot['Previsto Acumulado'].map('{:,.2f}'.format))
+        }, title='Previsto Acumulado', text=df_plot['Previsto Acumulado MI'])
 
         # Adiciona rótulos de dados e define a cor da linha
         fig.update_traces(
