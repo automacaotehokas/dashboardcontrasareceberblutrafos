@@ -138,7 +138,7 @@ def main():
 
         with col1:
             # Exibe a tabela com os valores previstos acumulados
-            st.write("A tabela abaixo mostra os valores previstos acumulados por mês/ano:")
+            st.write("A tabela de valores previstos acumulados:")
 
             # Filtra os dados para o status "Atraso"
             df_atraso = df[df['Status Evento'] == 'Atraso']
