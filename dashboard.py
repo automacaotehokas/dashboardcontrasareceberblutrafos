@@ -62,7 +62,7 @@ def main():
     with col1:
         st.title("Análise Contas a Receber - Blutrafos")
     with col2:
-        st.image("B (1).png", width=75)
+        st.image("B (1).png", width=100)
 
     st.write("Abaixo estão apresentados gráficos que analisam os valores previstos para eventos de pagamento, organizados por mês e classificados por status.")
     df = load_data()
@@ -103,10 +103,6 @@ def main():
             'Previsto Acumulado': previsto_acumulado.values
         })
 
-        # Formata os valores para exibição no gráfico em milhões
-        df_plot['Previsto Acumulado MI'] = df_plot['Previsto Acumulado'] / 1_000_000
-        df_plot['Previsto Acumulado MI'] = df_plot['Previsto Acumulado MI'].map('{:,.1f} MI'.format)
-
         st.markdown("---")
         # Calcula o total de Valor Prev
         total_valor_prev = df['Valor Prev'].sum()
@@ -119,7 +115,7 @@ def main():
         fig = px.line(df_plot, x='Mes', y='Previsto Acumulado', labels={
             'value': 'Valores Acumulados',
             'Mes': 'Mês/Ano'
-        }, title='Previsto Acumulado', text=df_plot['Previsto Acumulado MI'])
+        }, title='Previsto Acumulado', text=(df_plot['Previsto Acumulado'] / 1_000_000).map('{:,.1f} MI'.format))
 
         # Adiciona rótulos de dados e define a cor da linha
         fig.update_traces(
@@ -162,7 +158,7 @@ def main():
             # Adiciona a coluna "Atraso Acumulado" ao DataFrame df_plot
             df_plot['Atraso Acumulado'] = atraso_acumulado.reindex(df_plot['Mes']).fillna(0).values
 
-            st.dataframe(df_plot.reset_index(drop=True).style.format({
+            st.dataframe(df_plot[['Mes', 'Previsto Acumulado', 'Atraso Acumulado']].reset_index(drop=True).style.format({
                 'Previsto Acumulado': '{:,.2f}',
                 'Atraso Acumulado': '{:,.2f}'
             }))
